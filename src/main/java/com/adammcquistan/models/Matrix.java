@@ -47,16 +47,45 @@ public class Matrix {
         return this.data[rowIdx];
     }
     
+    public Vector getColumn(int colIdx) {
+        if (colIdx > (cols() - 1)) {
+            throw new ArrayIndexOutOfBoundsException("Attempting to select column @ index " + colIdx + " from a matrix with only " + cols()  + " columns");
+        }
+        
+        Vector v = new Vector();
+        for (int i = 0; i < rows(); i++) {
+            Vector rowVector = getRow(i);
+            v.append(rowVector.get(colIdx));
+        }
+        return v;
+    }
+    
     public void replaceRow(int rowIdx, Vector v) {
         if (rowIdx > curRowIdx) {
             throw new ArrayIndexOutOfBoundsException();
         }
         
-        if (this.cols() != v.size()) {
-            throw new IllegalArgumentException("Vector size (" + v.size() + ") <> matrix columns (" + this.cols() + ")");
+        if (cols() != v.size()) {
+            throw new IllegalArgumentException("Vector size (" + v.size() + ") <> matrix columns (" + cols() + ")");
         }
         
         this.data[rowIdx] = new Vector(v.toArray());
+    }
+    
+    public void replaceColumn(int colIdx, Vector v) {
+        if (colIdx > (cols() - 1)) {
+            throw new ArrayIndexOutOfBoundsException("Attempting to replace column @ index " + colIdx + " from a matrix with only " + cols()  + " columns");
+        }
+        
+        if (rows() != v.size()) {
+            throw new IllegalArgumentException("Vector size (" + v.size() + ") <> matrix rows (" + rows() + ")");
+        }
+        
+        for (int i = 0; i < rows(); i++) {
+            Vector w = getRow(i);
+            w.replace(colIdx, v.get(i));
+            replaceRow(i, w);
+        }
     }
     
     public int rows() {
@@ -222,8 +251,6 @@ public class Matrix {
         return this.transpose();
     }
     
-    
-    
     public Matrix matmul(Matrix m) {
         checkMatMulCompatibility(m);
         Matrix trans = m.T();
@@ -236,43 +263,6 @@ public class Matrix {
             }
         }
         return new Matrix(resultArr);
-    }
-    
-    public static Matrix sortPivot(Matrix c, int row, int col) {
-        Matrix m = new Matrix(c.toArray());
-        
-        double[][] rowToValueMap = new double[m.rows() - row][2];
-        int rowToValueMapIdx = 0;
-        for (int i = row; i < m.rows(); i++) {
-            Vector w = m.getRow(i);
-            rowToValueMap[rowToValueMapIdx++] = new double[]{ i, w.get(col) };
-        }
-        // reverse sort largest to smallest
-        Arrays.sort(rowToValueMap, (a, b) -> Double.compare(b[1], a[1]));
-        Matrix copyM = new Matrix(m.toArray());
-        rowToValueMapIdx = 0;
-        for (int i = row; i < m.rows(); i++) {
-            int replacementIdx = (int) rowToValueMap[rowToValueMapIdx++][0];
-            Vector replacement = m.getRow(replacementIdx);
-            copyM.replaceRow(i, replacement);
-        }
-        
-        return copyM;
-    }
-    
-    public static Matrix sortPivots(Matrix c) {
-        Matrix m = new Matrix(c.toArray());
-        // first determine the pivot based off the first column to not have a zero
-        int pivot = 0;
-       
-        for (int row = 0; row < m.rows(); row++) {
-            Vector v = m.getRow(row);
-            if (pivot < v.size()) {
-                m = sortPivot(m, row, pivot++);
-            }
-        }
-        
-        return m;
     }
     
     public static Matrix makeIdentityMatrix(int n) {
@@ -362,21 +352,26 @@ public class Matrix {
     }
     
     /**
-     * reduces the n x n square matrix to row echelon and looks to see 
-     * if the last row is all 0s
-     * @return true if singular, false if non-singular and invertable
+     * Performs Gram-Schmidt orthonormalization
+     * @return orthonormalized matrix
      */
-    public boolean isSingular() {
-        if (this.rows() != this.cols()) {
-            // not sure if I should return true / false or raise and exception
-            return true;
+    public Matrix orthoNormalize() {
+        Matrix m = new Matrix(toArray());
+        for (int i = 0; i < cols(); i++) {
+            Vector v = m.getColumn(i);
+            for (int j = 0; j < i; j++) {
+                Vector w = m.getColumn(j);
+                v = v.subtract(w.multiply(v.dot(w)));
+            }
+            if (v.normL2() > 0.000000001) {
+                v = v.divide(v.normL2());
+            } else {
+                v.fill(0.0);
+            }
+            m.replaceColumn(i, v);
         }
-        
-
-        
-        return false;
+        return m;
     }
-    
     
     private void checkSizeElementWiseCompatibility(Matrix m) throws ArithmeticException {
         if (this.rows() != m.rows()|| this.cols() != m.cols())
@@ -415,10 +410,8 @@ public class Matrix {
                 }
                 row++;
             }
-
         }
 
-        
         return s + sj + "\n  ]";
     }
 }

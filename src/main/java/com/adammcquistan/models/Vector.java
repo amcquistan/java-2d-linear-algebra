@@ -52,6 +52,13 @@ public class Vector {
         return this.data[idx];
     }
     
+    public void replace(int idx, double value) {
+        if (idx > (size() - 1)) {
+            throw new ArrayIndexOutOfBoundsException("Attempting to replace value @ index " + idx + " in an array of size " + size());
+        }
+        this.data[idx] = value;
+    }
+    
     public int size() {
         return currentIdx + 1;
     }
@@ -148,6 +155,10 @@ public class Vector {
         return product;
     }
     
+    /**
+     * This is the Manhattan norm
+     * @return Manhattan norm
+     */
     public double normL1() {
         double norm = 0.0d;
         for (int i = 0; i < this.size(); i++) {
@@ -156,6 +167,10 @@ public class Vector {
         return norm;
     }
     
+    /**
+     * This is the Euclidean norm
+     * @return Euclidean norm
+     */
     public double normL2() {
         return Math.sqrt(this.sumOfSquares());
     }

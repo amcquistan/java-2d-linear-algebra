@@ -396,91 +396,6 @@ public class MatrixTest {
     }
     
     @Test
-    public void testSortPivots() {
-        Matrix m = new Matrix(
-                new double[][] {
-                    { 0, 7, 8 },
-                    { 4, 5, 6 },
-                    { 1, 2, 3 }
-                }
-        );
-        double[][] expectedM = new double[][] {
-            { 4, 5, 6 },
-            { 0, 7, 8 },
-            { 1, 2, 3 }
-        };
-        Matrix sortedM = Matrix.sortPivots(m);
-        for (int r = 0; r < m.rows(); r++) {
-            Vector v = sortedM.getRow(r);
-            double[] expRow = expectedM[r];
-            for (int c = 0; c < m.cols(); c++) {
-                assertEquals(expRow[c], v.get(c), ALLOWED_DELTA);
-            }
-        }
-        
-        Matrix a = new Matrix(new double[][] {
-            { 0, 3, 1 },
-            { 0, 1, 2 },
-            { 2, 1, 2 }
-        });
-        double[][] expectedA = new double[][] {
-            { 2, 1, 2 },
-            { 0, 3, 1 },
-            { 0, 1, 2 }
-        };
-        Matrix sortedA = Matrix.sortPivots(a);
-        for (int r = 0; r < a.rows(); r++) {
-            Vector v = sortedA.getRow(r);
-            double[] expRow = expectedA[r];
-            for (int c = 0; c < a.cols(); c++) {
-                assertEquals(expRow[c], v.get(c), ALLOWED_DELTA);
-            }
-        }
-        
-        Matrix l = new Matrix(new double[][] {
-            { 0, 1, 2 },
-            { 2, 1, 2 },
-            { 0, 0, 1 },
-            { 0, 3, 1 }
-        });
-        double[][] expL = new double[][] {
-            { 2, 1, 2 },
-            { 0, 3, 1 },
-            { 0, 1, 2 },
-            { 0, 0, 1 }
-        };
-        Matrix sortedL = Matrix.sortPivots(l);
-        for (int r = 0; r < l.rows(); r++) {
-            Vector v = sortedL.getRow(r);
-            double[] expRow = expL[r];
-            for (int c = 0; c < l.cols(); c++) {
-                assertEquals(expRow[c], v.get(c), ALLOWED_DELTA);
-            }
-        }
-        
-        Matrix p = new Matrix(new double[][] {
-            { 0, 1, 2 },
-            { 2, 1, 2 },
-            { 0, 0, 0 },
-            { 0, 3, 1 }
-        });
-        double[][] expP = new double[][] {
-            { 2, 1, 2 },
-            { 0, 3, 1 },
-            { 0, 1, 2 },
-            { 0, 0, 0 }
-        };
-        Matrix sortedP = Matrix.sortPivots(p);
-        for (int r = 0; r < p.rows(); r++) {
-            Vector v = sortedP.getRow(r);
-            double[] expRow = expP[r];
-            for (int c = 0; c < p.cols(); c++) {
-                assertEquals(expRow[c], v.get(c), ALLOWED_DELTA);
-            }
-        }
-    }
-    
-    @Test
     public void testIdentityMatrix() {
         Matrix m2x2 = Matrix.makeIdentityMatrix(2);
         double[][] exp2x2 = new double[][] {
@@ -624,6 +539,28 @@ public class MatrixTest {
         assertThrows(ArithmeticException.class, () -> {
             Matrix inv3x3 = singular3x3.getInverse();
         });
+    }
+    
+    @Test
+    public void testOrthoNormalize() {
+        Matrix m3x3 = new Matrix(new double[][] {
+            { 1, 2, 4 },
+            { 0, 0, 5 },
+            { 0, 3, 6 }
+        });
+        double[][] exp3x3 = new double[][] {
+            { 1.0d, 0.0d, 0.0d },
+            { 0.0d, 0.0d, 1.0d },
+            { 0.0d, 1.0d, 0.0d }
+        };
+        Matrix o3x3 = m3x3.orthoNormalize();
         
+        for (int i = 0; i < m3x3.rows(); i++) {
+            Vector v = o3x3.getRow(i);
+            double[] expRow = exp3x3[i];
+            for (int j = 0; j < m3x3.cols(); j++) {
+                assertEquals(expRow[j], v.get(j), ALLOWED_DELTA);
+            }
+        }
     }
 }
