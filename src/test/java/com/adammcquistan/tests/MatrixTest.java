@@ -537,7 +537,7 @@ public class MatrixTest {
         });
         
         assertThrows(ArithmeticException.class, () -> {
-            Matrix inv3x3 = singular3x3.getInverse();
+            singular3x3.getInverse();
         });
     }
     
